@@ -4,10 +4,11 @@ import requests
 app = Flask(__name__)
 
 # --- 基础配置 ---
-NC_BASE_URL = "http://nocodb_app:2080"
-NC_TOKEN = "你的API_TOKEN"
+NC_BASE_URL = "http://nocodb:8080"
+NC_TOKEN = "nc_pat_token"
 BASE_ID = "pheeswfbk3ay3et"
 TARGET_TABLE_ID = "m7gmgfij532711w" # 目标表 B
+LINKFIELDID=""
 FIXED_TARGET_RECORD_ID = 1          # 固定修改 ID 为 1 的记录
 
 headers = {
@@ -27,41 +28,43 @@ def process_link(payload, link_field_id):
 
     # 1. 拿到源表新产生的 ID
     source_record_id = rows[0].get("Id")
-    
+    # https://app.nocodb.com/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
     # 2. 构造 PATCH 请求，修改目标表（B表）的第 1 条记录
-    patch_url = f"{NC_BASE_URL}/api/v3/data/{BASE_ID}/{TARGET_TABLE_ID}/records/{FIXED_TARGET_RECORD_ID}"
+    patch_url = f"{NC_BASE_URL}/api/v3/data/{BASE_ID}/{TARGET_TABLE_ID}/links/{link_field_id}/{FIXED_TARGET_RECORD_ID}"
     
     # 3. 根据传入的 link_field_id 进行关联
-    link_payload = { link_field_id: source_record_id }
+    link_payload = { 
+        "id":str(source_record_id),
+        }
 
     try:
-        res = requests.patch(patch_url, headers=headers, json=link_payload)
+        res = requests.post(patch_url, headers=headers, json=link_payload)
         if res.status_code == 200:
             print(f"[成功] 字段 {link_field_id} 已关联源 ID: {source_record_id}")
             return jsonify({"status": "success"}), 200
         else:
-            print(f"[失败] PATCH 出错: {res.text}")
-            return jsonify({"status": "error", "msg": res.text}), 500
+            print(f"[失败] PATCH 出错: code:{res.status_code} {res.text}")
+            return jsonify({"status": "error", "msg": res.text}), res.status_code
     except Exception as e:
         print(f"[异常] {e}")
         return jsonify({"status": "exception"}), 500
 
 # --- 路由定义：为每张表定义独立的 Webhook 路径 ---
 
-@app.route('/webhook/a2026', methods=['POST'])
+@app.route('/nocodbwebhook/a2026', methods=['POST'])
 def webhook_a2026():
     # 假设 A2026 对应字段 ID: cbtt8iets0ukc07
     return process_link(request.json, "cntuakw1olo1uv7")
 
-@app.route('/webhook/sa2026', methods=['POST'])
+@app.route('/nocodbwebhook/sa2026', methods=['POST'])
 def webhook_sa2026():
     # 假设 SA2026 对应另一个字段 ID
-    return process_link(request.json, "cu7c2kp82nnklc5")
+    return process_link(request.json, "croguwkyp3584wc")
 
-@app.route('/webhook/fg2026', methods=['POST'])
+@app.route('/nocodbwebhook/fg2026', methods=['POST'])
 def webhook_fg2026():
     # 假设 FG2026 对应另一个字段 ID
-    return process_link(request.json, "cbtt8iets0ukc07")
+    return process_link(request.json, "cg5nnxa4fyb8h7c")
 
 if __name__ == '__main__':
     # 监听 5000 端口

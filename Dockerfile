@@ -16,4 +16,4 @@ EXPOSE 5000
 
 # 使用 gunicorn 启动服务 (4个工作进程)
 # 这里的 app:app 对应 app.py 文件中的 app 变量
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
