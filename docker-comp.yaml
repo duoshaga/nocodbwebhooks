@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  webhook-service:
+    build: .
+    container_name: nocodb-webhook
+    restart: always
+    networks:
+      - nocodb_network
+    # 如果你想通过宿主机 IP 访问这个 webhook，保留 ports
+    # 如果只通过 Nginx 转发，可以考虑只暴露给网络
+    ports:
+      - "5000:5000"
+
+networks:
+  # 声明使用已经存在的 nocodb 网络
+  nocodb_network:
+    external: true
