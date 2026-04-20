@@ -5,6 +5,13 @@ services:
     build: .
     container_name: nocodb-webhook
     restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NC_BASE_URL=http://nocodb:8080
+      - NC_TOKEN=nc_pat_xxxx
+      - BASE_ID=pheeswfbk3ay3et
+      - TARGET_TABLE_ID=m7gmgfij532711w
+      - FIXED_TARGET_RECORD_ID=1
     networks:
       - nocodb
     # 如果你想通过宿主机 IP 访问这个 webhook，保留 ports
